@@ -1,0 +1,41 @@
+<!--
+  Custom Wazuh Detection Rules - SOC & Purple Team Home Lab
+  Author: Rafael Laporte (github.com/rcybershield)
+  Description: Custom correlation rules for SSH Brute-Force, Suricata NIDS Port Scan, and Sudo escalation.
+-->
+
+<group name="local,soc_homelab,">
+
+  <!-- Rule 100001: SSH Brute-Force Correlation (Triggers Shuffle SOAR Webhook) -->
+  <rule id="100001" level="12" frequency="5" timeframe="60">
+    <if_matched_sid>5716</if_matched_sid>
+    <same_source_ip />
+    <description>SOC Lab Alert: Possible SSH Brute-Force attack detected from $(srcip). Triggering Shuffle SOAR Playbook.</description>
+    <mitre>
+      <id>T1110.001</id>
+    </mitre>
+    <group>authentication_failures,ssh_brute_force,pci_dss_11.4,</group>
+  </rule>
+
+  <!-- Rule 100002: Suricata NIDS - Nmap SYN Stealth Scan Detection -->
+  <rule id="100002" level="10">
+    <if_sid>86601</if_sid>
+    <field name="alert.signature">ET SCAN|Nmap|SYN Scan</field>
+    <description>SOC Lab Alert [Suricata NIDS]: Network reconnaissance / Port Scan detected from $(src_ip) targeting $(dest_ip).</description>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+    <group>suricata,network_scan,reconnaissance,</group>
+  </rule>
+
+  <!-- Rule 100003: Unauthorized Sudo Privilege Escalation Attempt -->
+  <rule id="100003" level="11">
+    <if_sid>5403</if_sid>
+    <description>SOC Lab Alert: Unauthorized user $(dstuser) attempted to execute privileged command via sudo.</description>
+    <mitre>
+      <id>T1548.003</id>
+    </mitre>
+    <group>privilege_escalation,sudo,</group>
+  </rule>
+
+</group>
